@@ -127,3 +127,22 @@ def get_campaigns(limit: int = 50):
     cursor.close()
     conn.close()
     return {"campaigns": campaigns, "total": len(campaigns)}
+
+@app.get("/segmentation")
+def get_segmentation():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT platform, industry, country,
+               ROUND(AVG(ROI), 2) as avg_roi,
+               ROUND(AVG(ad_spend), 2) as avg_spend,
+               COUNT(*) as total
+        FROM campaigns
+        GROUP BY platform, industry, country
+        ORDER BY avg_roi DESC
+        LIMIT 20
+    """)
+    data = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return {"segmentation": data}
